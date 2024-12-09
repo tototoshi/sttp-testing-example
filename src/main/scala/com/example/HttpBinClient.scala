@@ -10,4 +10,10 @@ class HttpBinClient(backend: SttpBackend[Identity, Any]) {
     .response(asJson[HttpBinGetResponse])
     .send(backend)
 
+  def post(data: Map[String, String]): Response[Either[ResponseException[String, JsError], HttpBinPostResponse]] = basicRequest
+    .post(uri"https://httpbin.org/post")
+    .body(data)
+    .response(asJson[HttpBinPostResponse])
+    .send(backend)
+
 }

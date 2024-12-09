@@ -34,4 +34,28 @@ class HttpBinClientTest extends AnyFunSuite {
     }
   }
 
+  test("it can send a POST request") {
+    val backend = new RecordingSttpBackend(
+      SttpBackendStub.synchronous
+        .whenRequestMatches { request =>
+          request.method === Method.POST && request.uri.path.startsWith(List("post"))
+        }
+        .thenRespond(Right(HttpBinPostResponse(Map("foo" -> "bar"), Map.empty, "https://httpbin.org/post")))
+    )
+
+    val client = new HttpBinClient(backend)
+
+    val response: Response[Either[ResponseException[String, JsError], HttpBinPostResponse]] = client.post(Map("foo" -> "bar"))
+
+    // verifying stub response
+    assert(response.body.map(_.form) === Right(Map("foo" -> "bar")))
+
+    // verifying request
+    val interactions = backend.allInteractions
+    interactions match {
+      case (request, _) :: Nil =>
+        assert(request.uri === uri"https://httpbin.org/post")
+      case _ => fail()
+    }
+  }
 }
