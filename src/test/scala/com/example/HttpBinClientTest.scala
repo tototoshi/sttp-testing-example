@@ -5,6 +5,7 @@ import play.api.libs.json.JsError
 import sttp.client3._
 import sttp.client3.testing.RecordingSttpBackend
 import sttp.client3.testing.SttpBackendStub
+import sttp.model.MediaType
 import sttp.model.Method
 
 class HttpBinClientTest extends AnyFunSuite {
@@ -45,7 +46,8 @@ class HttpBinClientTest extends AnyFunSuite {
 
     val client = new HttpBinClient(backend)
 
-    val response: Response[Either[ResponseException[String, JsError], HttpBinPostResponse]] = client.post(Map("foo" -> "bar"))
+    val response: Response[Either[ResponseException[String, JsError], HttpBinPostResponse]] =
+      client.post(Map("foo" -> "bar"))
 
     // verifying stub response
     assert(response.body.map(_.form) === Right(Map("foo" -> "bar")))
@@ -55,6 +57,7 @@ class HttpBinClientTest extends AnyFunSuite {
     interactions match {
       case (request, _) :: Nil =>
         assert(request.uri === uri"https://httpbin.org/post")
+        assert(request.body === StringBody("foo=bar", "utf-8", MediaType.TextPlain))
       case _ => fail()
     }
   }
